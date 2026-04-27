@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Love is in small things · цвет возвращается</title>
+    <style>
+        * {
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(145deg, #dbcebe 0%, #c4b29c 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Segoe UI', 'Quicksand', system-ui, 'Georgia', serif;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .game-wrapper {
+            background: #fef5e9;
+            border-radius: 64px 64px 56px 56px;
+            box-shadow: 0 25px 40px rgba(0, 0, 0, 0.2);
+            padding: 20px 24px 28px;
+            transition: all 0.2s;
+        }
+
+        .game-header {
+            text-align: center;
+            margin-bottom: 18px;
+        }
+
+        .game-header h1 {
+            font-size: 1.9rem;
+            margin: 0;
+            background: linear-gradient(135deg, #cc8a65, #aa6a46);
+            background-clip: text;
+            -webkit-background-clip: text;
+            color: transparent;
+            letter-spacing: -0.3px;
+        }
+
+        .level-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #f2e4d6;
+            padding: 8px 20px;
+            border-radius: 80px;
+            margin: 12px 0 16px;
+        }
+
+        .level-btn {
+            background: #e9d5c2;
+            border: none;
+            font-size: 1.5rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 60px;
+            cursor: pointer;
+            color: #8b5a3c;
+            transition: 0.2s;
+            font-weight: bold;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+        .level-btn:hover {
+            background: #dcbfa6;
+            transform: scale(0.96);
+        }
+        .level-name {
+            font-weight: 600;
+            background: #fff2e6;
+            padding: 6px 24px;
+            border-radius: 40px;
+            font-size: 1.1rem;
+            color: #9a6745;
+            box-shadow: inset 0 1px 2px #ffe6d4, 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        .canvas-paper {
+            background: #e8dacc;
+            border-radius: 48px;
+            padding: 10px;
+            box-shadow: inset 0 0 0 1px #fff5e8, 0 12px 24px rgba(0, 0, 0, 0.1);
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+            border-radius: 38px;
+            background-color: #fdf1e2;
+            cursor: pointer;
+            width: 100%;
+            height: auto;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .items-panel {
+            margin-top: 24px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            background: #fff7ef;
+            border-radius: 60px;
+            padding: 14px 18px;
+        }
+
+        .item-badge {
+            background: #fae6d6;
+            border-radius: 100px;
+            padding: 6px 16px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 500;
+            color: #794f30;
+            transition: 0.1s;
+            border: 1px solid #ffe3cf;
+        }
+        .item-badge.found {
+            background: #d9e6cf;
+            color: #3b6427;
+            text-decoration: line-through;
+            text-decoration-thickness: 2px;
+            opacity: 0.85;
+        }
+
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 14px 10px 6px;
+        }
+        .counter {
+            background: #eedbcb;
+            border-radius: 40px;
+            padding: 5px 20px;
+            font-weight: 600;
+            color: #6a3e1f;
+        }
+        .reset-level {
+            background: none;
+            border: 1px solid #d6b48c;
+            padding: 5px 18px;
+            border-radius: 40px;
+            font-family: inherit;
+            font-weight: 500;
+            color: #b16f48;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .reset-level:hover {
+            background: #f1dfce;
+        }
+
+        .message-area {
+            text-align: center;
+            margin-top: 18px;
+            background: #fff0e3;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 6px 20px;
+            border-radius: 40px;
+            font-size: 0.85rem;
+            color: #b5693f;
+            transition: 0.1s;
+        }
+        footer {
+            font-size: 0.7rem;
+            text-align: center;
+            margin-top: 20px;
+            color: #c9aa8b;
+        }
+        @media (max-width: 650px) {
+            .game-wrapper { padding: 14px 18px 22px; }
+            .item-badge { padding: 4px 12px; font-size: 0.8rem; }
+            .level-name { font-size: 0.9rem; padding: 4px 18px; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-wrapper">
+    <div class="game-header">
+        <h1>🌸 love is in small things 🌸</h1>
+        <div style="font-size: 0.85rem; color:#c08058;">найди мелочи — мир станет цветным</div>
+    </div>
+
+    <div class="level-bar">
+        <button class="level-btn" id="prevLevelBtn">◀</button>
+        <div class="level-name" id="levelName">гостиная</div>
+        <button class="level-btn" id="nextLevelBtn">▶</button>
+    </div>
+
+    <div class="canvas-paper">
+        <canvas id="loveCanvas" width="800" height="500" style="width:100%; height:auto; max-width:800px; aspect-ratio:800/500"></canvas>
+    </div>
+
+    <div class="info-row">
+        <div class="counter" id="counterDisplay">🎨 цвет: 0%</div>
+        <button class="reset-level" id="resetLevelBtn">🍃 заново уровень</button>
+    </div>
+
+    <div class="items-panel" id="itemsList"></div>
+    <div class="message-area" id="messageBox">💭 коснись маленькой вещи — она вернёт цвет</div>
+    <footer>каждая найденная деталь раскрашивает мир · любовь в мелочах</footer>
+</div>
+
+<script>
+    (function(){
+        // Функция перехода от серого к цвету
+        function colorWithProgress(r, g, b, progress, forceFullColor = false) {
+            if (forceFullColor || progress >= 0.999) return `rgb(${r}, ${g}, ${b})`;
+            const gray = (r + g + b) / 3;
+            const newR = Math.floor(gray + (r - gray) * progress);
+            const newG = Math.floor(gray + (g - gray) * progress);
+            const newB = Math.floor(gray + (b - gray) * progress);
+            return `rgb(${newR}, ${newG}, ${newB})`;
+        }
+
+        // ---------- УРОВЕНЬ 1: ГОСТИНАЯ (с поддержкой прогресса) ----------
+        function drawLivingRoom(ctx, progress) {
+            // Стена
+            ctx.fillStyle = colorWithProgress(247, 238, 221, progress);
+            ctx.fillRect(0, 0, 800, 330);
+            // Пол
+            ctx.fillStyle = colorWithProgress(214, 188, 146, progress);
+            ctx.fillRect(0, 330, 800, 170);
+            // Планки пола
+            ctx.strokeStyle = colorWithProgress(176, 141, 98, progress);
+            ctx.lineWidth = 1.5;
+            for (let i = 0; i < 20; i++) {
+                ctx.beginPath();
+                ctx.moveTo(40 + i * 45, 330);
+                ctx.lineTo(30 + i * 45, 500);
+                ctx.stroke();
+            }
+            // Диван
+            ctx.fillStyle = colorWithProgress(207, 166, 123, progress);
+            ctx.fillRect(220, 300, 200, 100);
+            ctx.fillStyle = colorWithProgress(184, 130, 88, progress);
+            ctx.fillRect(210, 370, 220, 40);
+            ctx.fillStyle = colorWithProgress(229, 193, 156, progress);
+            ctx.fillRect(230, 310, 180, 70);
+            ctx.fillStyle = colorWithProgress(219, 170, 122, progress);
+            ctx.fillRect(240, 315, 55, 35);
+            ctx.fillRect(335, 315, 55, 35);
+            // Окно
+            ctx.fillStyle = colorWithProgress(207, 224, 230, progress);
+            ctx.fillRect(580, 40, 150, 130);
+            ctx.fillStyle = colorWithProgress(241, 250, 252, progress);
+            ctx.fillRect(590, 48, 130, 114);
+            ctx.fillStyle = colorWithProgress(219, 188, 138, progress);
+            for (let i = 0; i < 3; i++) {
+                ctx.fillRect(640 + i * 2, 48, 6, 114);
+                ctx.fillRect(590, 85 + i * 35, 130, 5);
+            }
+            ctx.fillStyle = colorWithProgress(226, 207, 174, progress);
+            ctx.fillRect(575, 40, 12, 130);
+            ctx.fillRect(725, 40, 12, 130);
+            // Стол
+            ctx.fillStyle = colorWithProgress(183, 143, 100, progress);
+            ctx.fillRect(490, 350, 150, 18);
+            ctx.fillStyle = colorWithProgress(158, 113, 72, progress);
+            ctx.fillRect(520, 368, 28, 70);
+            ctx.fillRect(590, 368, 28, 70);
+            // Картина
+            ctx.fillStyle = colorWithProgress(219, 184, 140, progress);
+            ctx.fillRect(295, 78, 80, 70);
+            ctx.fillStyle = colorWithProgress(244, 226, 198, progress);
+            ctx.fillRect(305, 90, 60, 48);
+            ctx.fillStyle = colorWithProgress(181, 148, 107, progress);
+            ctx.fillRect(320, 100, 30, 30);
+            // Торшер
+            ctx.fillStyle = colorWithProgress(183, 143, 90, progress);
+            ctx.fillRect(470, 240, 12, 130);
+            ctx.fillStyle = colorWithProgress(243, 220, 178, progress);
+            ctx.beginPath();
+            ctx.ellipse(476, 240, 22, 28, 0, 0, Math.PI*2);
+            ctx.fill();
+            // Коврик
+            ctx.fillStyle = colorWithProgress(203, 175, 131, progress);
+            ctx.fillRect(488, 410, 98, 45);
+            ctx.fillStyle = colorWithProgress(173, 139, 96, progress);
+            ctx.fillRect(498, 418, 80, 30);
+        }
+
+        // ---------- УРОВЕНЬ 2: КУХНЯ ----------
+        function drawKitchen(ctx, progress) {
+            ctx.fillStyle = colorWithProgress(250, 239, 223, progress);
+            ctx.fillRect(0, 0, 800, 280);
+            ctx.fillStyle = colorWithProgress(230, 213, 189, progress);
+            ctx.fillRect(0, 280, 800, 220);
+            // Плитка
+            for (let i = 0; i < 12; i++) {
+                ctx.fillStyle = colorWithProgress(240, 225, 206, progress);
+                ctx.fillRect(20 + i * 65, 150, 30, 30);
+                ctx.fillStyle = colorWithProgress(224, 207, 180, progress);
+                ctx.fillRect(35 + i * 65, 165, 10, 20);
+            }
+            // Плита
+            ctx.fillStyle = colorWithProgress(196, 167, 122, progress);
+            ctx.fillRect(380, 180, 140, 90);
+            ctx.fillStyle = colorWithProgress(158, 123, 85, progress);
+            for (let i = 0; i < 4; i++) ctx.fillRect(395 + i * 28, 240, 18, 18);
+            ctx.fillStyle = colorWithProgress(176, 143, 104, progress);
+            ctx.fillRect(405, 210, 24, 28);
+            ctx.fillStyle = colorWithProgress(201, 170, 126, progress);
+            ctx.beginPath(); ctx.ellipse(417, 208, 14, 6, 0, 0, Math.PI*2); ctx.fill();
+            // Холодильник
+            ctx.fillStyle = colorWithProgress(226, 233, 240, progress);
+            ctx.fillRect(30, 240, 60, 130);
+            ctx.fillStyle = colorWithProgress(197, 210, 220, progress);
+            ctx.fillRect(42, 260, 36, 50);
+            ctx.fillRect(42, 320, 36, 40);
+            // Стол
+            ctx.fillStyle = colorWithProgress(201, 165, 114, progress);
+            ctx.fillRect(260, 360, 220, 18);
+            ctx.fillStyle = colorWithProgress(164, 125, 85, progress);
+            ctx.fillRect(290, 378, 18, 50);
+            ctx.fillRect(430, 378, 18, 50);
+            ctx.fillStyle = colorWithProgress(245, 229, 205, progress);
+            ctx.fillRect(260, 360, 220, 10);
+            for (let i = 0; i < 8; i++) {
+                ctx.fillStyle = colorWithProgress(224, 201, 168, progress);
+                ctx.fillRect(270 + i * 26, 362, 8, 6);
+            }
+            // Раковина
+            ctx.fillStyle = colorWithProgress(212, 223, 230, progress);
+            ctx.fillRect(590, 320, 90, 50);
+            ctx.fillStyle = colorWithProgress(186, 206, 212, progress);
+            ctx.beginPath(); ctx.ellipse(635, 345, 28, 15, 0, 0, Math.PI*2); ctx.fill();
+            // Полка
+            ctx.fillStyle = colorWithProgress(193, 160, 110, progress);
+            ctx.fillRect(680, 180, 90, 8);
+            ctx.fillStyle = colorWithProgress(227, 206, 170, progress);
+            ctx.fillRect(690, 155, 20, 25);
+            ctx.fillRect(720, 158, 18, 22);
+            // Окно
+            ctx.fillStyle = colorWithProgress(207, 224, 230, progress);
+            ctx.fillRect(470, 40, 100, 80);
+            ctx.fillStyle = colorWithProgress(241, 250, 252, progress);
+            ctx.fillRect(479, 48, 82, 64);
+            ctx.fillStyle = colorWithProgress(203, 188, 138, progress);
+            ctx.fillRect(520, 48, 5, 64);
+            // Часы
+            ctx.fillStyle = colorWithProgress(201, 164, 104, progress);
+            ctx.beginPath(); ctx.arc(62, 134, 16, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = colorWithProgress(245, 229, 205, progress);
+            ctx.beginPath(); ctx.arc(62, 134, 12, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ---------- УРОВЕНЬ 3: ПАРК ----------
+        function drawPark(ctx, progress) {
+            // Небо
+            const gradSky = ctx.createLinearGradient(0, 0, 0, 250);
+            gradSky.addColorStop(0, colorWithProgress(203, 228, 248, progress));
+            gradSky.addColorStop(1, colorWithProgress(226, 240, 250, progress));
+            ctx.fillStyle = gradSky;
+            ctx.fillRect(0, 0, 800, 250);
+            // Облака
+            ctx.fillStyle = colorWithProgress(253, 253, 245, progress);
+            ctx.beginPath(); ctx.ellipse(100, 60, 45, 30, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(380, 90, 55, 35, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(680, 50, 50, 32, 0, 0, Math.PI*2); ctx.fill();
+            // Трава
+            const gradGrass = ctx.createLinearGradient(0, 240, 0, 500);
+            gradGrass.addColorStop(0, colorWithProgress(189, 219, 138, progress));
+            gradGrass.addColorStop(1, colorWithProgress(159, 192, 112, progress));
+            ctx.fillStyle = gradGrass;
+            ctx.fillRect(0, 240, 800, 260);
+            // Дорожка
+            ctx.fillStyle = colorWithProgress(226, 207, 170, progress);
+            ctx.fillRect(300, 350, 200, 80);
+            ctx.fillStyle = colorWithProgress(207, 184, 136, progress);
+            ctx.fillRect(320, 360, 160, 60);
+            // Деревья
+            ctx.fillStyle = colorWithProgress(139, 90, 43, progress);
+            ctx.fillRect(80, 180, 30, 120);
+            ctx.fillStyle = colorWithProgress(111, 158, 63, progress);
+            ctx.beginPath(); ctx.ellipse(95, 170, 40, 50, 0, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = colorWithProgress(139, 90, 43, progress);
+            ctx.fillRect(680, 160, 35, 140);
+            ctx.fillStyle = colorWithProgress(111, 158, 63, progress);
+            ctx.beginPath(); ctx.ellipse(697, 150, 50, 60, 0, 0, Math.PI*2); ctx.fill();
+            // Скамейка
+            ctx.fillStyle = colorWithProgress(184, 137, 87, progress);
+            ctx.fillRect(580, 370, 80, 12);
+            ctx.fillStyle = colorWithProgress(154, 110, 66, progress);
+            ctx.fillRect(590, 382, 12, 25);
+            ctx.fillRect(640, 382, 12, 25);
+            // Цветы
+            for (let i = 0; i < 12; i++) {
+                let x = 50 + i * 70;
+                let y = 280 + (i % 3) * 20;
+                ctx.fillStyle = colorWithProgress(247, 218, 156, progress);
+                ctx.beginPath(); ctx.arc(x, y, 5, 0, Math.PI*2); ctx.fill();
+                ctx.fillStyle = colorWithProgress(240, 178, 122, progress);
+                ctx.beginPath(); ctx.arc(x, y-2, 3, 0, Math.PI*2); ctx.fill();
+            }
+            // Кусты
+            ctx.fillStyle = colorWithProgress(136, 179, 95, progress);
+            ctx.beginPath(); ctx.ellipse(500, 310, 40, 30, 0, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.ellipse(540, 320, 35, 28, 0, 0, Math.PI*2); ctx.fill();
+            // Солнце
+            ctx.fillStyle = colorWithProgress(255, 240, 179, progress);
+            ctx.beginPath(); ctx.arc(740, 50, 30, 0, Math.PI*2); ctx.fill();
+        }
+
+        // ---------- СПИСОК УРОВНЕЙ С ПРЕДМЕТАМИ ----------
+        const levels = [
+            {
+                name: "🏡 гостиная",
+                drawBg: (ctx, progress) => drawLivingRoom(ctx, progress),
+                items: [
+                    { id: "heart", name: "сердечко", icon: "❤️", x: 148, y: 96, rad: 18, found: false },
+                    { id: "coffee", name: "чашка кофе", icon: "☕", x: 556, y: 376, rad: 20, found: false },
+                    { id: "book", name: "книга", icon: "📘", x: 310, y: 398, rad: 22, found: false },
+                    { id: "glasses", name: "очки", icon: "👓", x: 330, y: 384, rad: 18, found: false },
+                    { id: "flower", name: "цветок", icon: "🌻", x: 700, y: 135, rad: 20, found: false },
+                    { id: "clock", name: "часы", icon: "🕰️", x: 86, y: 222, rad: 18, found: false }
+                ]
+            },
+            {
+                name: "🍳 кухня",
+                drawBg: (ctx, progress) => drawKitchen(ctx, progress),
+                items: [
+                    { id: "kettle", name: "чайник", icon: "🫖", x: 428, y: 210, rad: 22, found: false },
+                    { id: "apple", name: "яблоко", icon: "🍎", x: 340, y: 330, rad: 18, found: false },
+                    { id: "spoon", name: "ложка", icon: "🥄", x: 208, y: 402, rad: 18, found: false },
+                    { id: "cat", name: "котик", icon: "🐱", x: 576, y: 414, rad: 20, found: false },
+                    { id: "mug", name: "кружка", icon: "🍵", x: 692, y: 280, rad: 18, found: false },
+                    { id: "timer", name: "таймер", icon: "⏲️", x: 62, y: 134, rad: 18, found: false }
+                ]
+            },
+            {
+                name: "🌳 парк",
+                drawBg: (ctx, progress) => drawPark(ctx, progress),
+                items: [
+                    { id: "bird", name: "птичка", icon: "🐦", x: 638, y: 84, rad: 18, found: false },
+                    { id: "bench", name: "скамейка", icon: "🪑", x: 620, y: 366, rad: 22, found: false },
+                    { id: "icecream", name: "мороженое", icon: "🍦", x: 400, y: 310, rad: 18, found: false },
+                    { id: "balloon", name: "шарик", icon: "🎈", x: 260, y: 140, rad: 18, found: false },
+                    { id: "flower", name: "цветок", icon: "🌸", x: 540, y: 220, rad: 18, found: false },
+                    { id: "squirrel", name: "белочка", icon: "🐿️", x: 720, y: 90, rad: 20, found: false }
+                ]
+            }
+        ];
+
+        let currentLevelIdx = 0;
+        let currentLevel = levels[currentLevelIdx];
+        const canvas = document.getElementById('loveCanvas');
+        const ctxCanvas = canvas.getContext('2d');
+
+        function getProgress() {
+            let total = currentLevel.items.length;
+            let found = currentLevel.items.filter(i => i.found).length;
+            return total === 0 ? 1 : found / total;
+        }
+
+        function renderFullScene() {
+            const progress = getProgress();
+            currentLevel.drawBg(ctxCanvas, progress);
+            // Рисуем только ненайденные предметы (иконки)
+            for (let item of currentLevel.items) {
+                if (!item.found) {
+                    ctxCanvas.shadowBlur = 4;
+                    ctxCanvas.shadowColor = "rgba(0,0,0,0.2)";
+                    ctxCanvas.beginPath();
+                    ctxCanvas.arc(item.x, item.y, item.rad+2, 0, Math.PI*2);
+                    ctxCanvas.fillStyle = "rgba(255,245,225,0.85)";
+                    ctxCanvas.fill();
+                    ctxCanvas.shadowBlur = 2;
+                    ctxCanvas.font = `${item.rad+6}px 'Segoe UI Emoji'`;
+                    ctxCanvas.fillStyle = "#3b2a1f";
+                    ctxCanvas.fillText(item.icon, item.x - item.rad/1.4, item.y + item.rad/2);
+                    ctxCanvas.shadowBlur = 0;
+                }
+            }
+            // Надпись с прогрессом цвета
+            ctxCanvas.font = "italic 12px 'Segoe UI'";
+            ctxCanvas.fillStyle = `rgba(60,45,30,${0.4 + progress*0.4})`;
+            ctxCanvas.fillText(`цвет: ${Math.floor(progress*100)}%`, 20, 485);
+        }
+
+        function updateUI() {
+            const foundCount = currentLevel.items.filter(i => i.found).length;
+            const total = currentLevel.items.length;
+            const percent = Math.floor(foundCount / total * 100);
+            document.getElementById('counterDisplay').innerHTML = `🎨 цвет: ${percent}%`;
+            const container = document.getElementById('itemsList');
+            container.innerHTML = '';
+            for (let item of currentLevel.items) {
+                const badge = document.createElement('div');
+                badge.className = 'item-badge';
+                if (item.found) badge.classList.add('found');
+                badge.innerHTML = `<span>${item.icon}</span><span>${item.name}</span>`;
+                container.appendChild(badge);
+            }
+            const msgDiv = document.getElementById('messageBox');
+            if (foundCount === total) {
+                msgDiv.innerHTML = '✨💖 ВСЁ НАЙДЕНО! Мир засиял красками 💖✨';
+                msgDiv.style.background = "#fee5cf";
+            } else {
+                msgDiv.innerHTML = '🍃 нажимай на иконки — цвет возвращается 🌈';
+                msgDiv.style.background = "#fff0e3";
+            }
+            document.getElementById('levelName').innerHTML = currentLevel.name;
+        }
+
+        function handleCanvasClick(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            let clientX, clientY;
+            if (e.touches) {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+                e.preventDefault();
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+            let canvasX = (clientX - rect.left) * scaleX;
+            let canvasY = (clientY - rect.top) * scaleY;
+            canvasX = Math.min(Math.max(0, canvasX), canvas.width);
+            canvasY = Math.min(Math.max(0, canvasY), canvas.height);
+            
+            let hit = false;
+            for (let item of currentLevel.items) {
+                if (!item.found) {
+                    const dx = canvasX - item.x;
+                    const dy = canvasY - item.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist <= item.rad + 5) {
+                        item.found = true;
+                        hit = true;
+                        break;
+                    }
+                }
+            }
+            if (hit) {
+                renderFullScene();
+                updateUI();
+                const msg = document.getElementById('messageBox');
+                msg.style.transform = "scale(1.01)";
+                setTimeout(() => msg.style.transform = "", 150);
+                if (currentLevel.items.every(i => i.found)) {
+                    setTimeout(() => {
+                        document.getElementById('messageBox').innerHTML = '🎉💖 УРОВЕНЬ ПРОЙДЕН! Переходи на следующий 💖🎉';
+                    }, 500);
+                }
+            } else {
+                document.getElementById('messageBox').innerHTML = "🍂 приглядись... может, ты прошёл мимо мелочи?";
+                setTimeout(() => {
+                    if (!currentLevel.items.every(i => i.found))
+                        document.getElementById('messageBox').innerHTML = '🍃 нажимай на иконки — цвет возвращается 🌈';
+                }, 1200);
+            }
+        }
+
+        function resetLevel() {
+            for (let item of currentLevel.items) item.found = false;
+            renderFullScene();
+            updateUI();
+            document.getElementById('messageBox').innerHTML = "🌿 уровень начат заново, всё снова чёрно-белое";
+            setTimeout(() => {
+                if (!currentLevel.items.every(i => i.found))
+                    document.getElementById('messageBox').innerHTML = '🍃 нажимай на иконки — цвет возвращается 🌈';
+            }, 1500);
+        }
+
+        function switchLevel(delta) {
+            let newIdx = currentLevelIdx + delta;
+            if (newIdx < 0) newIdx = levels.length - 1;
+            if (newIdx >= levels.length) newIdx = 0;
+            currentLevelIdx = newIdx;
+            currentLevel = levels[currentLevelIdx];
+            for (let item of currentLevel.items) item.found = false;
+            renderFullScene();
+            updateUI();
+        }
+
+        canvas.addEventListener('click', handleCanvasClick);
+        canvas.addEventListener('touchstart', (e) => { e.preventDefault(); handleCanvasClick(e); });
+        document.getElementById('resetLevelBtn').addEventListener('click', resetLevel);
+        document.getElementById('prevLevelBtn').addEventListener('click', () => switchLevel(-1));
+        document.getElementById('nextLevelBtn').addEventListener('click', () => switchLevel(1));
+
+        renderFullScene();
+        updateUI();
+    })();
+</script>
+</body>
+</html>
